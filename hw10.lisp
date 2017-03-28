@@ -1,3 +1,61 @@
+; **************** BEGIN INITIALIZATION FOR ACL2s B MODE ****************** ;
+; (Nothing to see here!  Your actual file is after this initialization code);
+
+#|
+Pete Manolios
+Fri Jan 27 09:39:00 EST 2012
+----------------------------
+
+Made changes for spring 2012.
+
+
+Pete Manolios
+Thu Jan 27 18:53:33 EST 2011
+----------------------------
+
+The Beginner level is the next level after Bare Bones level.
+
+|#
+
+; Put CCG book first in order, since it seems this results in faster loading of this mode.
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading the CCG book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "ccg/ccg" :uncertified-okp nil :dir :acl2s-modes :ttags ((:ccg)) :load-compiled-file nil);v4.0 change
+
+;Common base theory for all modes.
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s base theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "base-theory" :dir :acl2s-modes)
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s customizations book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "custom" :dir :acl2s-modes :uncertified-okp nil :ttags :all)
+
+;Settings common to all ACL2s modes
+(acl2s-common-settings)
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading trace-star and evalable-ld-printing books.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "trace-star" :uncertified-okp nil :dir :acl2s-modes :ttags ((:acl2s-interaction)) :load-compiled-file nil)
+(include-book "hacking/evalable-ld-printing" :uncertified-okp nil :dir :system :ttags ((:evalable-ld-printing)) :load-compiled-file nil)
+
+;theory for beginner mode
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s beginner theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "beginner-theory" :dir :acl2s-modes :ttags :all)
+
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem setting up ACL2s Beginner mode.") (value :invisible))
+;Settings specific to ACL2s Beginner mode.
+(acl2s-beginner-settings)
+
+; why why why why 
+(acl2::xdoc acl2s::defunc) ; almost 3 seconds
+
+(cw "~@0Beginner mode loaded.~%~@1"
+    #+acl2s-startup "${NoMoReSnIp}$~%" #-acl2s-startup ""
+    #+acl2s-startup "${SnIpMeHeRe}$~%" #-acl2s-startup "")
+
+
+(acl2::in-package "ACL2S B")
+
+; ***************** END INITIALIZATION FOR ACL2s B MODE ******************* ;
+;$ACL2s-SMode$;Beginner
 #|
 
 CS 2800 Homework 10 - Spring 2017
@@ -577,9 +635,17 @@ QED
 ;; plus a list of rationals l and returns all elements of
 ;; l that are strictly less than r.
 (defunc filter-less (r l)
-  ...........
+  :input-contract (and (rationalp r) (lorp l))
+  :output-contract (lorp (filter-less r l))
+  (cond ((endp l) nil)
+        ((< (first l) r) (app (list (first l)) (filter-less r (rest l))))
+        (t (filter-less r (rest l)))))
+  
 (check= (filter-less 4 '(1 2 4 7 3 19 -19 8)) '(1 2 3 -19))
 (check= (filter-less 4 nil) nil)
+
+(check= (filter-less 10 '(1 2 3)) '(1 2 3))
+(check= (filter-less 4 '(4)) nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DEFINE:
@@ -588,9 +654,18 @@ QED
 ;; plus a list of rationals l and returns all elements of
 ;; l that are Greater Than or Equal (GTE) to r.
 (defunc filter-gte (r l)
-  ............
+  :input-contract (and (rationalp r) (lorp l))
+  :output-contract (lorp (filter-gte r l))
+  (cond ((endp l) nil)
+        ((>= (first l) r) (app (list (first l)) (filter-gte r (rest l))))
+        (t (filter-gte r (rest l)))))
+
 (check= (filter-gte 4 '(1 2 4 7 3 19 -19 8)) '(4 7 19 8))
 (check= (filter-gte 4 nil) nil)
+
+(check= (filter-gte 10 '(11 12 13)) '(11 12 13))
+(check= (filter-gte 10 '(10)) '(10))#|ACL2s-ToDo-Line|#
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GIVEN
@@ -647,7 +722,35 @@ the last of the list for (rest l)
 You may assume that if (in e (filter-less r l)) is true and e = (first l)
 then you MUST take the (cons (first l)(filter-less r (rest l))) branch
 of filter-less.
-.................
+
+Case 1: (endp l)
+Case 2: (not (endp l)) /\ (< (first l) r)
+Case 3: (not (endp l)) /\ (not (< (first l) r))
+
+Case 1
+C1. (rationalp e)
+C2. (rationalp r)
+C3. (lorp l)
+C4. (in e (filter-less r l))
+C5. (endp l)
+--------------
+
+(< e r)
+= {def filter-less, C5}
+nil
+QED
+
+Case 2
+C1. (not (endp l))
+C2. (rationalp e)
+C3. (rationalp r)
+C4. (lorp l)
+C5. (in e (filter-less r l))
+C6. (< (first l) r)
+-----------------
+(< e r)
+#TODO im so fucking confused
+
 |#
 
 (test? (implies (lorp l)(equal (in e (qsort l))(in e l))))
