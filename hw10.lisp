@@ -664,8 +664,7 @@ QED
 (check= (filter-gte 4 nil) nil)
 
 (check= (filter-gte 10 '(11 12 13)) '(11 12 13))
-(check= (filter-gte 10 '(10)) '(10))#|ACL2s-ToDo-Line|#
-
+(check= (filter-gte 10 '(10)) '(10))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GIVEN
@@ -809,15 +808,25 @@ a list is empty or not.
 ;; from the recursive call).  Stop recursively calling ssort 
 ;; when l is empty. 
 (defunc ssort (l)
-  ............
+  :input-contract (lorp l)
+  :output-contract (lorp (ssort l))
+  (if (endp l)
+    nil
+    (cons (min-l l) (ssort (del (min-l l) l)))))
   
 (check= (ssort '(1 5/2 3 8 -8 2/3)) '(-8 2/3 1 5/2 3 8))
 
 (check= (qsort '(1 5/2 3 8 -8 2/3)) '(-8 2/3 1 5/2 3 8))
 
 ;; Add more tests to ensure qsort and ssort both sort
-...........
-
+(check= (ssort nil) nil)
+(check= (qsort nil) nil)
+(check= (ssort '(0)) '(0))
+(check= (qsort '(0)) '(0))
+(check= (ssort '(1 2 5 4 3)) '(1 2 3 4 5))
+(check= (qsort '(1 2 5 4 3)) '(1 2 3 4 5))
+(check= (ssort '(-1 -2 -5 -4 -3)) '(-5 -4 -3 -2 -1))
+(check= (qsort '(-1 -2 -5 -4 -3)) '(-5 -4 -3 -2 -1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GIVEN
@@ -863,46 +872,49 @@ a list is empty or not.
    (acl2::time$ (acl2::value-triple (qsort *med-list*)))
    (acl2::value-triple nil))
 ;; How long does this take (in seconds)? The value is output in the REPL.
-..........................
+; 0.28 seconds realtime, 0.28 seconds runtime
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (ssort *med-list*)))
    (acl2::value-triple nil))
 ;; How long does this take (in seconds)? The value is output in the REPL.
-..........................
+; 0.22 seconds realtime, 0.22 seconds runtime
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (qsort *large-list*)))
    (acl2::value-triple nil))
 ;; How long does this take (in seconds)? The value is output in the REPL.
-..........................
+; 26.59 seconds realtime, 26.09 seconds runtime
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (ssort *large-list*)))
    (acl2::value-triple nil))
 
 ;; How long does this take (in seconds)? The value is output in the REPL.
-..........................
+; 44.22 seconds realtime, 43.73 seconds runtime
 
 ;; Generate a list of rationals that ensures that ssort is as fast or 
 ;; faster than qsort for any list size (you can write your own function)
 ;; For testing purposes make (len *slow-list*) = 16000
 ;; Hint: What is the worst possible input for our implementation of qsort
 ;; where the pivot element is the first element in the list?
+; LOL one where the list is already sorted I see what you did there
 
-(defconst *slow-list* ............)
+(defconst *slow-list* (ssort (gen-lor* 16000)))
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (ssort *slow-list*)))
    (acl2::value-triple nil))
 ;; How long does this take?
-..........................
+; 12.16 seconds realtime, 12.16 seconds runtime
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (qsort *slow-list*)))
-   (acl2::value-triple nil))
+   (acl2::value-triple nil))#|ACL2s-ToDo-Line|#
+
 ;; How long does this take?
-..........................
+; This caused ACL2s to hang for about 10 minutes before giving 'ACL2 died unexpectedly'
+; so I would say > 10 minutes. (I did reboot the session and try again)
 
 #|
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
