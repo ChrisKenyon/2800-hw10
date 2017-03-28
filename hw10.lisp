@@ -1,61 +1,3 @@
-; **************** BEGIN INITIALIZATION FOR ACL2s B MODE ****************** ;
-; (Nothing to see here!  Your actual file is after this initialization code);
-
-#|
-Pete Manolios
-Fri Jan 27 09:39:00 EST 2012
-----------------------------
-
-Made changes for spring 2012.
-
-
-Pete Manolios
-Thu Jan 27 18:53:33 EST 2011
-----------------------------
-
-The Beginner level is the next level after Bare Bones level.
-
-|#
-
-; Put CCG book first in order, since it seems this results in faster loading of this mode.
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading the CCG book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "ccg/ccg" :uncertified-okp nil :dir :acl2s-modes :ttags ((:ccg)) :load-compiled-file nil);v4.0 change
-
-;Common base theory for all modes.
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s base theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "base-theory" :dir :acl2s-modes)
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s customizations book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "custom" :dir :acl2s-modes :uncertified-okp nil :ttags :all)
-
-;Settings common to all ACL2s modes
-(acl2s-common-settings)
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading trace-star and evalable-ld-printing books.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "trace-star" :uncertified-okp nil :dir :acl2s-modes :ttags ((:acl2s-interaction)) :load-compiled-file nil)
-(include-book "hacking/evalable-ld-printing" :uncertified-okp nil :dir :system :ttags ((:evalable-ld-printing)) :load-compiled-file nil)
-
-;theory for beginner mode
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s beginner theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "beginner-theory" :dir :acl2s-modes :ttags :all)
-
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem setting up ACL2s Beginner mode.") (value :invisible))
-;Settings specific to ACL2s Beginner mode.
-(acl2s-beginner-settings)
-
-; why why why why 
-(acl2::xdoc acl2s::defunc) ; almost 3 seconds
-
-(cw "~@0Beginner mode loaded.~%~@1"
-    #+acl2s-startup "${NoMoReSnIp}$~%" #-acl2s-startup ""
-    #+acl2s-startup "${SnIpMeHeRe}$~%" #-acl2s-startup "")
-
-
-(acl2::in-package "ACL2S B")
-
-; ***************** END INITIALIZATION FOR ACL2s B MODE ******************* ;
-;$ACL2s-SMode$;Beginner
 #|
 
 CS 2800 Homework 10 - Spring 2017
@@ -485,8 +427,7 @@ define functions later on. Make sure to use defunc.
 
 (test? (implies (and (listp l1)(listp l2))
                 (equal (in e (app l1 l2))
-                       (or (in e l1)(in e l2)))))#|ACL2s-ToDo-Line|#
-
+                       (or (in e l1)(in e l2)))))
 #|
 
 2) 
@@ -537,7 +478,77 @@ TODO... finish this case
 3) 
 Prove phi_in_rev: (implies (listp l)
                            (equal (in e l)(in e (rev l))))
-..............
+                           
+(listp l) => (in e l) = (in e (rev l))
+
+Use IS for in
+1. Trivial case, ~IC
+2. IC /\ (endp l)
+3. IC /\ (not (endp l)) /\ (equal (first l) e)
+4. IC /\ (not (endp l)) /\ (not (equal (first l) e) /\ (phi_in_rev|((l (rest l))
+
+1.
+C1. (not (listp l))
+C2. (listp l)
+---------
+C3. nil {C1, C2, PL}
+
+2. (listp l) /\ (endp l) => phi_in_rev
+C1. (listp l)
+C2. (endp l)
+--------
+(in e l) = (in e (rev l))
+= {def in|((X l)), C2, if-axioms}
+nil = (in e (rev l))
+= {def rev|((a l)), C2, if-axioms}
+nil = (in e nil)
+= {def in|((X nil))}
+nil = nil
+= {PL}
+t
+QED
+
+3. (listp l) /\ (not (endp l)) /\ (equal e (first l)) => phi_in_rev
+C1. (listp l)
+C2. (not (endp l))
+C3. (equal e (first l))
+---------
+(in e l) = (in e (rev l))
+= {def in|((X l) (a e)), def rev|((a l)), if-axioms x2, C2, C3}
+t = (in e (app (rev (rest l)) (list (first l))))
+= {assoc of app}
+t = (in e (app (list (first l)) (rev (rest l))))
+= {def app|((a (list (first l)) (b (rev (rest l)))), if-axioms, C2}
+t = (in e (cons (list (first l) (app (rest (list (first l))) (rev (rest l)))))
+= {first-rest axioms, def app|((a (rest (list (first l)))))}
+t = (in e (cons (list (first l)) (rev (rest l))))
+= {def in|((X (cons (list (first l)) (rev (rest l))))), C3, if-axioms, first-rest axioms}
+t = t
+QED
+
+4. (listp l) /\ (not (endp l)) /\ (not (equal e (first l))) /\ phi_in_rev|((l (rest l)))
+C1. (listp l)
+C2. (not (endp l))
+C3. (not (equal e (first l)))
+C4. (listp (rest l) => (equal (in e (rest l)) (in e (rev (rest l))))
+----------
+C5. (listp (rest l)) {C1, C2, def listp}
+C6. (in e (rest l)) = (in e (rev (rest l))) {C4, C5, MP}
+
+(in e l) = (in e (rev l))
+= {def in|((X l) (a e)), c2, c3, if-axioms x2; def rev|((a l)), c2}
+(in e (rest l)) = (in e (app (rev (rest l)) (list (first l))))
+= {assoc of app}
+(in e (rest l)) = (in e (app (list (first l)) (rev (rest l))))
+= {def in|((a e) (X (app (list (first l)) (rev (rest l))))), C2, C3, if-axioms x2}
+(in e (rest l)) = (in e (rest (app (list (first l)) (rev (rest l)))))
+= {first-rest axioms}
+(in e (rest l)) = (in e (rev (rest l)))
+= {c6}
+t
+QED
+
+
 |#
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
