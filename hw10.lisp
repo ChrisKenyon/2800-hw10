@@ -195,8 +195,13 @@ Question 1A)
 3. (and (rationalp x) (not (< x 0)) phi|((x (- x 1)))  => phi
 
 |#
-...........
       
+(defunc q1a (x)
+  :input-contract (rationalp x)
+  :output-contract (rationalp (q1a x))
+  (if (< x 0)
+    x
+    (q1a (- x 1))))
 
 #|
 Question 1B)
@@ -212,7 +217,15 @@ Question 1B)
     => phi
 
 |#
-.............
+
+(defunc q1b (x y)
+  :input-contract (and (listp x)(integerp y))
+  :output-contract (integerp (q1b x y))
+  (cond ((endp x) y)
+        ((equal y 0) y)
+        ((> y 0) (q1b (rest x) (- y 1)))
+        (t (q1b (rest x) (+ y 1)))))#|ACL2s-ToDo-Line|#
+
 
 #|
 Question 1C)
@@ -220,8 +233,21 @@ Question 1C)
 2. (and (listp x)(natp y)(endp x)) => phi
 3. (and (listp x)(natp y)(not (endp x)) phi|((x (rest x))(y (- y 1)))
     => phi
+
+(defunc q1c (x y)
+  :input-contract (and (listp x)(natp y))
+  :output-contract (natp (q1c x y))
+  (if (endp x) 
+    y
+    (q1c (rest x)(- y 1))))
+ 
+This function which would give rise to the induction scheme above is not
+admissible because its recursive case can violate the contract of inputting
+a nat into q1c, as (- 0 1) is no longer a nat. A simple violating call
+would be (q1c '(1 2 3) 0)
+
 |#
-...........
+
 
 #|
 Question 1D)
@@ -236,8 +262,14 @@ the expression being too unruly (eg for obligation 3 you would see
         (not (equal x 0)) phi|((x (- x 3))))  => phi
 
 |#
-............
 
+(defunc q1d (x)
+  :input-contract (natp x)
+  :output-contract (natp (q1d x))
+  (cond ((equal x 1) x)
+        ((equal x 2) x)
+        ((equal x 0) x)
+        (t (q1d (- x 3)))))
 
 ;; The following functions are not trivial to admit into ACL2s in logic
 ;; mode. For f5-f7, if the function is "theoretically admissible" just 
@@ -255,7 +287,10 @@ Question 1E)
         phi|((x (- x 1))) phi|((x (- x 2)))  => phi
 
 |#
-.............
+
+(defunc q1e (x)
+  :input-contract (integerp x)
+  :output-contract (integerp (q1e x))
 
 #|
 Question 1F)
@@ -267,7 +302,10 @@ Question 1F)
    phi|((x (cons y x))(y (- y (len x)))) => phi
 
 |#
-.............
+
+(defunc q1d (x)
+  :input-contract (and (natp x))
+  :output-contract (natp (q1d x))
 
 #|
 Question 1G)
@@ -286,7 +324,9 @@ Hint: phi|((a (rest a)) (b b)) is the same as
       phi|((a (rest a))).  You can leave off variable parameters 
       that don't change.
 |#
-...............
+(defunc q1d (x)
+  :input-contract (and (natp x))
+  :output-contract (natp (q1d x))
 
 
 :logic
