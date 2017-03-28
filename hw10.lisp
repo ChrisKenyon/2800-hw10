@@ -224,8 +224,7 @@ Question 1B)
   (cond ((endp x) y)
         ((equal y 0) y)
         ((> y 0) (q1b (rest x) (- y 1)))
-        (t (q1b (rest x) (+ y 1)))))#|ACL2s-ToDo-Line|#
-
+        (t (q1b (rest x) (+ y 1)))))
 
 #|
 Question 1C)
@@ -291,6 +290,9 @@ Question 1E)
 (defunc q1e (x)
   :input-contract (integerp x)
   :output-contract (integerp (q1e x))
+  (if (< x -1)
+    x
+    (+ (q1e (- x 1)) (q1e (- x 2)))))
 
 #|
 Question 1F)
@@ -303,9 +305,13 @@ Question 1F)
 
 |#
 
-(defunc q1d (x)
-  :input-contract (and (natp x))
-  :output-contract (natp (q1d x))
+(defunc q1f (x y)
+  :input-contract (and (listp x)(natp y))
+  :output-contract (natp (q1f x y))
+  (cond ((equal (len x) y) y)
+        ((> (len x) y) (q1f (rest x)(+ y 1)))
+        (t (q1f (cons y x)(- y (len x))))))
+        
 
 #|
 Question 1G)
@@ -324,9 +330,13 @@ Hint: phi|((a (rest a)) (b b)) is the same as
       phi|((a (rest a))).  You can leave off variable parameters 
       that don't change.
 |#
-(defunc q1d (x)
-  :input-contract (and (natp x))
-  :output-contract (natp (q1d x))
+(defunc q1g (x y)
+  :input-contract (and (listp x)(integerp y))
+  :output-contract (integerp (q1g x y))
+  (cond ((and (endp x)(equal y -1)) y)
+        ((and (endp x)(< y -1)) (q1g x (+ y 1)))
+        ((endp x) (q1g (cons 1 x)(- y 1)))
+        ((not (endp x)) (q1g (rest x) y))))
 
 
 :logic
@@ -475,13 +485,51 @@ define functions later on. Make sure to use defunc.
 
 (test? (implies (and (listp l1)(listp l2))
                 (equal (in e (app l1 l2))
-                       (or (in e l1)(in e l2)))))
+                       (or (in e l1)(in e l2)))))#|ACL2s-ToDo-Line|#
+
 #|
+
 2) 
 Prove phi_in_app: (implies (and (listp l1)(listp l2))
                            (equal (in e (app l1 l2))
                                   (or (in e l1)(in e l2))))
-................
+I.S. for app
+
+1. Trivial
+~((listp  l1)/\(listp l2)) => phi_in_app
+C1. ~((listp  l1)/\(listp l2))
+C2. (listp l1)
+C3. (listp l2)
+={C1, C2, C3, PL}
+t 
+
+2. Base 
+(listp l1)/\(listp l2)/\(endp l1) => phi_in_app
+C1. (listp l1)
+C2. (listp l2)
+C3. (endp l1)
+-------------
+C4. (app l1 l2) = l2 {C1,C2,C3,def.app}
+C5. (in e l1) = nil {C1,C3,def. in}
+(in e (app l1 l2)) = (or (in e l1)(in e l2))
+= {C4,C5,PL}
+(in e l2) = (in e l2)
+= {PL}
+t
+
+3. Recursive
+(listp l1)/\(listp l2)/\~(endp l1)/\phi_in_app|((l1 (rest l1))) => phi_in_app
+C1. (listp l1)
+C2. (listp l2)
+C3. ~(endp l1)
+--------------
+C4. (app l1 l2) = (cons (first a)(app (rest a) b)) {C1,C2,C3,def.app}
+C5.
+
+TODO... finish this case
+
+
+
 |#
 
 (test? (implies (listp l)(equal (in e l)(in e (rev l)))))
