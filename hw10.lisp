@@ -1,61 +1,3 @@
-; **************** BEGIN INITIALIZATION FOR ACL2s B MODE ****************** ;
-; (Nothing to see here!  Your actual file is after this initialization code);
-
-#|
-Pete Manolios
-Fri Jan 27 09:39:00 EST 2012
-----------------------------
-
-Made changes for spring 2012.
-
-
-Pete Manolios
-Thu Jan 27 18:53:33 EST 2011
-----------------------------
-
-The Beginner level is the next level after Bare Bones level.
-
-|#
-
-; Put CCG book first in order, since it seems this results in faster loading of this mode.
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading the CCG book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "ccg/ccg" :uncertified-okp nil :dir :acl2s-modes :ttags ((:ccg)) :load-compiled-file nil);v4.0 change
-
-;Common base theory for all modes.
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s base theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "base-theory" :dir :acl2s-modes)
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s customizations book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "custom" :dir :acl2s-modes :uncertified-okp nil :ttags :all)
-
-;Settings common to all ACL2s modes
-(acl2s-common-settings)
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading trace-star and evalable-ld-printing books.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "trace-star" :uncertified-okp nil :dir :acl2s-modes :ttags ((:acl2s-interaction)) :load-compiled-file nil)
-(include-book "hacking/evalable-ld-printing" :uncertified-okp nil :dir :system :ttags ((:evalable-ld-printing)) :load-compiled-file nil)
-
-;theory for beginner mode
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s beginner theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
-(include-book "beginner-theory" :dir :acl2s-modes :ttags :all)
-
-
-#+acl2s-startup (er-progn (assign fmt-error-msg "Problem setting up ACL2s Beginner mode.") (value :invisible))
-;Settings specific to ACL2s Beginner mode.
-(acl2s-beginner-settings)
-
-; why why why why 
-(acl2::xdoc acl2s::defunc) ; almost 3 seconds
-
-(cw "~@0Beginner mode loaded.~%~@1"
-    #+acl2s-startup "${NoMoReSnIp}$~%" #-acl2s-startup ""
-    #+acl2s-startup "${SnIpMeHeRe}$~%" #-acl2s-startup "")
-
-
-(acl2::in-package "ACL2S B")
-
-; ***************** END INITIALIZATION FOR ACL2s B MODE ******************* ;
-;$ACL2s-SMode$;Beginner
 #|
 
 CS 2800 Homework 10 - Spring 2017
@@ -492,7 +434,7 @@ define functions later on. Make sure to use defunc.
 Prove phi_in_app: (implies (and (listp l1)(listp l2))
                            (equal (in e (app l1 l2))
                                   (or (in e l1)(in e l2))))
-I.S. for app
+I.S. for in
 
 1. Trivial
 ~((listp  l1)/\(listp l2)) => phi_in_app
@@ -516,17 +458,42 @@ C5. (in e l1) = nil {C1,C3,def. in}
 = {PL}
 t
 
-3. Recursive
-(listp l1)/\(listp l2)/\~(endp l1)/\phi_in_app|((l1 (rest l1))) => phi_in_app
+3. Base
+(listp l1)/\(listp l2)/\~(endp l1)/\(equal e (first l1)) => phi_in_app
 C1. (listp l1)
 C2. (listp l2)
 C3. ~(endp l1)
+C4. (equal e (first l1))
 --------------
-C4. (app l1 l2) = (cons (first a)(app (rest a) b)) {C1,C2,C3,def.app}
-C5.
+C5. (app l1 l2) = (cons (first l1)(app (rest l1) l2)) {C1,C2,C3,def.app}
 
-TODO... finish this case
+(in e (app l1 l2)) = (or (in e l1)(in e l2))
+= {C5,first-rest ax}
+(in e (cons (first l1)(app (rest l1) l2))) = (or (in e (cons (first l1)(rest l1)))(in e l2))
+= {first-rest ax, def. in}
+t = (or t (in e l2))
+= {PL}
+t
 
+4. Recursive
+(listp l1)/\(listp l2)/\~(endp l1)/\~(equal e (first l1))/\phi_in_app|((l1 (rest l1))) => phi_in_app
+C1. (listp l1)
+C2. (listp l2)
+C3. ~(endp l1)
+C4. ~(equal e (first l1))
+C5. (in e (app (rest l1) l2)) = (or (in e (rest l1))(in e l2))
+--------------
+C6. (app l1 l2) = (cons (first l1)(app (rest l1) l2)) {C1,C2,C3,def.app}
+
+(in e (app l1 l2)) = (or (in e l1)(in e l2))
+= {C5,first-rest ax}
+(in e (cons (first l1)(app (rest l1) l2))) = (or (in e (cons (first l1)(rest l1)))(in e l2))
+= {C4, def. in, first-rest ax}
+(in e (app (rest l1) l2)) = (or (in e (rest l1))(in e l2))
+= {C5}
+t
+
+QED
 
 
 |#
@@ -910,8 +877,7 @@ a list is empty or not.
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (qsort *slow-list*)))
-   (acl2::value-triple nil))#|ACL2s-ToDo-Line|#
-
+   (acl2::value-triple nil))
 ;; How long does this take?
 ; This caused ACL2s to hang for about 10 minutes before giving 'ACL2 died unexpectedly'
 ; so I would say > 10 minutes. (I did reboot the session and try again)
