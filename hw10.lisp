@@ -748,11 +748,17 @@ C11. (< (first (rev l1)) (first l2))
 -----------------------------------
 
 (sortedp (app l1 l2))
+(sortedp (cons (first l1) (app (rest l1) l2)))
+= {C2,C3,C9,C4,def. sortedp|((l (cons (first l1) (app (rest l1) l2)))), if ax, first-rest ax}
+(sortedp (app (rest l1) l2))
+= {C5}
+t
 
-  
+QED
+
+
+IGNORE ALL THIS, UNLESS WE THINK THE ABOVE IS WRONG...
   attempt 2
-  
-  
 Re-written min-l
 min-l (l)
   :ic (lorp l)/\(consp l)
@@ -763,7 +769,6 @@ min-l (l)
     (t                               (min-l (rest l))))
 
 I.S for min-l
-
 1. Trivial
 ~((lorp l)/\(consp l)) => phi_app_sort
 C1. ~(lorp l)
@@ -779,7 +784,10 @@ C2. (consp l)
 C3. (endp (rest l1))
 (lorp l1) /\ (lorp l2) /\ (sortedp l1) /\ (sortedp l2) /\ (consp l1)
   /\ (consp l2) /\ (< (first (rev l1)) (first l2)) => (sortedp (app l1 l2))
-        
+..
+
+
+
 |#
 
 ;; GIVEN: No need to prove this.
