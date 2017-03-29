@@ -891,8 +891,7 @@ a list is empty or not.
 Case 1: Trivial, ~IC
 Case 2: IC /\ (endp l)
 Case 3: IC /\ (not (endp l)) /\ (endp (rest l))
-Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l))))
-Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
+Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l)))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
 
 Case 1: Trivial, will not prove
 
@@ -930,17 +929,27 @@ C6. (lorp (filter-less (first l) (rest l))) {filter-less o.c.}
 C7. (sortedp (qsort (filter-less (first l) (rest l)))) {C4, C6, MP} 
 C8. (lorp (filter-gte (first l) (rest l))) {filter-gte o.c.}
 C9. (sortedp (qsort (filter-gte (first l) (rest l)))) {C5, C7, MP}
-C10. (consp l) {C2, def endp}
-C11. (< (first (rev (filter-less (first l) l))) (first (filter-gte (first l) l))) {def filter-less, def filter-gte => identical functions except for recursive calls and the sign} 
+C10. (consp (filter-less (first l) (rest l))) {C6, def filter-less}
+C11. (consp (cons (first l)(filter-gte (first l) (rest l)))) {def.cons,C8, def filter-gte}
+C12. (lorp (cons (first l)(filter-gte (first l) (rest l)))) {C11, def lorp}
+C13. (< (first l) (first (filter-gte (first l) l))) {def filter-gte} 
+C14. (< (first (cons (first l)(filter-gte (first l)(rest l))))
+        (second(cons (first l)(filter-gte (first l)(rest l))))) {L1, C13}
+C15. (sortedp (cons (first l)(qsort (filter-gte (first l)(rest l))))) {def. sortedp,if.ax,C9,C14}
+C16. (sortedp (app (qsort (filter-less (first l)(rest l)))
+              (cons (first l)(qsort (filter-gte (first l)(rest l)))))) 
+                     {C1,C11,C7,C15,C10,C11, phi_app_sort|((l1 (filter-less (first l) (rest l)))) (l2 (cons (first l)(filter-gte (first l) (rest l)))))), MP}
+              
 (sortedp (qsort l))
 = {C1,C2,C3,def.qsort}
 (sortedp (app (qsort (filter-less (first l)(rest l)))
               (cons (first l)(qsort (filter-gte (first l)(rest l))))))
-= {C1, C10, C7, C8, C11, phi_app_sort|((l1 (filter-less (first l) (rest l)))) (l2 (filter-gte (first l) (rest l))))), MP}
-(sortedp (app (qsort (filter-less (first l) (rest l))) (cons (first l) (qsort (filter-gte (first l) (rest l))))))
-= {def app, assoc of app, first-rest axioms}
+= {C16}
 t
 QED
+
+
+*** ...These are not the droids you are looking for... ***
 
 |#
 
