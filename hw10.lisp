@@ -918,31 +918,7 @@ C3. (endp (rest l))
 = {def sortedp, C3}
 t
 QED
-
-
-#TODO remove this
-(defunc filter-less (r l)
-  :input-contract (and (rationalp r) (lorp l))
-  :output-contract (lorp (filter-less r l))
-  (cond ((endp l) nil)
-        ((< (first l) r) (app (list (first l)) (filter-less r (rest l))))
-        (t (filter-less r (rest l)))))
-Re-written sortedp
-(defunc sortedp (l)
-  :input-contract (lorp l)
-  :output-contract (booleanp (sortedp l))
-  (cond ((endp l) t)
-        ((endp (rest l)) t)
-        ((<= (first l) (second l)) (sortedp (rest l)))))       
-(defunc qsort (l)
-  :input-contract (lorp l)
-  :output-contract (lorp (qsort l))
-  (if (or (endp l)(endp (rest l)))
-    l
-    (app (qsort (filter-less (first l)(rest l)))
-         (cons (first l)(qsort (filter-gte (first l)(rest l)))))))
-        
-         
+      
 Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l)))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
 C1. (lorp l)
 C2. (not (endp l))
@@ -953,54 +929,18 @@ C5. (lorp (filter-gte (first l) (rest l))) => (sortedp (qsort (filter-gte (first
 C6. (lorp (filter-less (first l) (rest l))) {filter-less o.c.}
 C7. (sortedp (qsort (filter-less (first l) (rest l)))) {C4, C6, MP} 
 C8. (lorp (filter-gte (first l) (rest l))) {filter-gte o.c.}
-C9. (sortedp (qsort (filter-gte (first l) (rest l)))) {C5, C7, MP} 
+C9. (sortedp (qsort (filter-gte (first l) (rest l)))) {C5, C7, MP}
+C10. (consp l) {C2, def endp}
+C11. (< (first (rev (filter-less (first l) l))) (first (filter-gte (first l) l))) {def filter-less, def filter-gte => identical functions except for recursive calls and the sign} 
 (sortedp (qsort l))
 = {C1,C2,C3,def.qsort}
 (sortedp (app (qsort (filter-less (first l)(rest l)))
               (cons (first l)(qsort (filter-gte (first l)(rest l))))))
-
-
-Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) 
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l))))
-C1. (lorp l)
-C2. (not (endp l))
-C3. (not (endp (rest l)))
-C4. (lorp (filter-less (first l) (rest l))) => (sortedp (qsort (filter-less (first l) (rest l))))
----------------
-C5. (lorp (filter-less (first l) (rest l))) {filter-less o.c.}
-C6. (sortedp (qsort (filter-less (first l) (rest l)))) {c4, c5, MP}
-(sortedp (qsort l))
-= {C1,C2,C3,def.qsort}
-(sortedp (app (qsort (filter-less (first l)(rest l)))
-              (cons (first l)(qsort (filter-gte (first l)(rest l))))))
-
-
-#TODO write this
-
-
-Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
-C1. (lorp l)
-C2. (not (endp l))
-C3. (not (endp (rest l)))
-C4. (lorp (filter-gte (first l) (rest l))) => (sortedp (qsort (filter-gte (first l) (rest l))))
-#TODO write this
+= {C1, C10, C7, C8, C11, phi_app_sort|((l1 (filter-less (first l) (rest l)))) (l2 (filter-gte (first l) (rest l))))), MP}
+(sortedp (app (qsort (filter-less (first l) (rest l))) (cons (first l) (qsort (filter-gte (first l) (rest l))))))
+= {def app, assoc of app, first-rest axioms}
+t
+QED
 
 |#
 
