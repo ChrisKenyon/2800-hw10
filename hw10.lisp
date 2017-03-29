@@ -757,14 +757,24 @@ nil => (sortedp (app l1 l2))
 = {PL}
 t
  
- 3. Base
-(lorp l1)/\~(endp l1)/\(endp (rest l1)) => phi_app_sort
-
 |#
 
 (defthm L1 (implies (and (lorp l)(not (endp l)))
-                    (equal (second (cons 'a l))(first l))))
+                    (equal (second (cons a l))(first l))))
 #|
+Lemma 1 proof
+C1. (lorp l)
+C2. (not (endp l))
+(second (cons a l)) = (first l)
+={def. second, C1,C2}
+(first (rest (cons a l))) = (first l)
+= {first-rest ax}
+(first l) = (first l)
+t
+
+3. Base
+(lorp l1)/\~(endp l1)/\(endp (rest l1)) => phi_app_sort
+
 C1. (lorp l1)
 C2. ~(endp l1)
 C3. (endp (rest l1))
@@ -789,14 +799,44 @@ C12. (<= (first l1)(first l2)) {C11,PL}
 = {C12,C6,PL}
 t
 
-4. Recursive
-(lorp l1)/\~(endp l1)/\~(endp (rest l1))/\(<= (first l1)(second l1))/\phi_app_sort|((l1 (rest l1))) => phi_app_sort
 |#
-
 (defthm L2 (implies (and (lorp l)(not (endp l))(not (endp (rest l))))
                     (equal (first (rev (rest l))) (first (rev l)))))
-
 #|
+Lemma 2 Proof
+C1. (lorp l)
+C2. (not (endp l))
+C3. (not (endp (rest l)))
+---------
+C4. (lorp (rest l)) {C1,C2,C3}
+(first (rev (rest l))) = (first (rev l))
+= {def. rev, C1,C2}
+(first (rev (rest l))) = (first (app (rev (rest l)) (list (first l))))
+= {def app, C2}
+(first (rev (rest l))) = (first (cons (first (rev (rest l))) (app (rest (rev (rest l))) (list (first l)))))
+={first-rest ax}
+(first (rev (rest l))) = (first (rev (rest l))))
+={PL}
+t
+
+(defunc rev (a) 
+  :input-contract (listp a) 
+  :output-contract (listp (rev a))
+  (if (endp a)
+      nil
+    (app (rev (rest a)) (list (first a)))))
+    
+(defunc app (a b) 
+  :input-contract (and (listp a) (listp b))
+  :output-contract (listp (app a b))
+  (if (endp a)
+      b
+    (cons (first a) (app (rest a) b))))   
+    
+    
+4. Recursive
+(lorp l1)/\~(endp l1)/\~(endp (rest l1))/\(<= (first l1)(second l1))/\phi_app_sort|((l1 (rest l1))) => phi_app_sort
+
 C1. (lorp l1)
 C2. ~(endp l1)
 C3. ~(endp (rest l1))
