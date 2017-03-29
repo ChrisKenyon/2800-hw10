@@ -1001,6 +1001,42 @@ Re-written sortedp
     (app (qsort (filter-less (first l)(rest l)))
          (cons (first l)(qsort (filter-gte (first l)(rest l)))))))
         
+         
+Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l)))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
+C1. (lorp l)
+C2. (not (endp l))
+C3. (not (endp (rest l)))
+C4. (lorp (filter-less (first l) (rest l))) => (sortedp (qsort (filter-less (first l) (rest l))))
+C5. (lorp (filter-gte (first l) (rest l))) => (sortedp (qsort (filter-gte (first l) (rest l))))
+---------------
+C6. (lorp (filter-less (first l) (rest l))) {filter-less o.c.}
+C7. (sortedp (qsort (filter-less (first l) (rest l)))) {C4, C6, MP} 
+C8. (lorp (filter-gte (first l) (rest l))) {filter-gte o.c.}
+C9. (sortedp (qsort (filter-gte (first l) (rest l)))) {C5, C7, MP} 
+(sortedp (qsort l))
+= {C1,C2,C3,def.qsort}
+(sortedp (app (qsort (filter-less (first l)(rest l)))
+              (cons (first l)(qsort (filter-gte (first l)(rest l))))))
+
+
+Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) 
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
 Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l))))
 C1. (lorp l)
 C2. (not (endp l))
