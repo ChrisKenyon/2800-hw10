@@ -760,9 +760,11 @@ t
  3. Base
 (lorp l1)/\~(endp l1)/\(endp (rest l1)) => phi_app_sort
 
-L1. (listp l) => (second (cons a l)) = (first l)
-{first-rest axioms, def. second}
+|#
 
+(defthm L1 (implies (and (lorp l)(not (endp l)))
+                    (equal (second (cons 'a l))(first l))))
+#|
 C1. (lorp l1)
 C2. ~(endp l1)
 C3. (endp (rest l1))
@@ -782,7 +784,7 @@ C12. (<= (first l1)(first l2)) {C11,PL}
 (sortedp (cons (first l1) l2))
 = {def. sortedp|((l (cons (first l1) l2))),C7,C8,if ax}
 (and (<= (first (cons (first l1) l2))(second (cons (first l1) l2))) (sortedp (rest (cons (first l1) l2))))
-= {first-rest ax, L1}
+= {first-rest ax,C1,C2,L1}
 (and (<= (first l1)(first l2)) (sortedp l2))
 = {C12,C6,PL}
 t
@@ -1057,7 +1059,8 @@ a list is empty or not.
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (qsort *slow-list*)))
-   (acl2::value-triple nil))
+   (acl2::value-triple nil))#|ACL2s-ToDo-Line|#
+
 ;; How long does this take?
 ; This caused ACL2s to hang for about 10 minutes before giving 'ACL2 died unexpectedly'
 ; so I would say > 10 minutes. (I did reboot the session and try again)
