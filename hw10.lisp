@@ -672,7 +672,114 @@ any functions that stop before (endp l1)?
 You may also need a lemma showing the last of a list STAYS 
 the last of the list for (rest l) 
 
-.................
+
+  attempt 1
+
+Re-written sortedp
+(defunc sortedp (l)
+  :input-contract (lorp l)
+  :output-contract (booleanp (sortedp l))
+  (cond ((endp l) t)
+        ((endp (rest l)) t)
+        ((<= (first l) (second l)) (sortedp (rest l)))))
+        
+I.S. for sortedp
+1. Trivial
+~(lorp l1) => phi_app_sort
+C1. ~(lorp l1)
+C2. (lorp l1)
+= {C1,C2}
+nil
+
+2. Base (Trivial 2)
+(lorp l1)/\(endp l1) => phi_app_sort
+C1. (lorp l1)
+C2. (endp l1)
+(lorp l1) /\ (lorp l2) /\ (sortedp l1) /\ (sortedp l2) /\ (consp l1)
+  /\ (consp l2) /\ (< (first (rev l1)) (first l2)) => (sortedp (app l1 l2))
+= {C2,PL}
+nil => (sortedp (app l1 l2))
+= {PL}
+t
+ 
+ 3. Base
+(lorp l1)/\~(endp l1)/\(endp (rest l1)) => phi_app_sort
+
+L1. (listp l) => (second (cons a l)) = (first l)
+{first-rest axioms, def. second}
+
+C1. (lorp l1)
+C2. ~(endp l1)
+C3. (endp (rest l1))
+C4. (lorp l2)
+C5. (sortedp l1)
+C6. (sortedp l2)
+C7. (consp l1)
+C8. (consp l2)
+C9. (< (first (rev l1)) (first l2))
+-----------------------------------
+C10. (rev l1) = l1 {C1,C3,def. rev(twice), def. app, if ax}
+C11. (< (first l1)(first l2)) {C9,C10}
+C12. (<= (first l1)(first l2)) {C11,PL}
+
+(sortedp (app l1 l2))
+= {C1,C3,C4, def. app (twice), if ax}
+(sortedp (cons (first l1) l2))
+= {def. sortedp|((l (cons (first l1) l2))),C7,C8,if ax}
+(and (<= (first (cons (first l1) l2))(second (cons (first l1) l2))) (sortedp (rest (cons (first l1) l2))))
+= {first-rest ax, L1}
+(and (<= (first l1)(first l2)) (sortedp l2))
+= {C12,C6,PL}
+t
+
+4. Recursive
+(lorp l1)/\~(endp l1)/\~(endp (rest l1))/\(<= (first l1)(second l1))/\phi_app_sort|((l1 (rest l1))) => phi_app_sort
+C1. (lorp l1)
+C2. ~(endp l1)
+C3. ~(endp (rest l1))
+C4. (<= (first l1)(second l1))
+C5. (sortedp (app (rest l1) l2))
+C6. (lorp l2)
+C7. (sortedp l1)
+C8. (sortedp l2)
+C9. (consp l1)
+C10. (consp l2)
+C11. (< (first (rev l1)) (first l2))
+-----------------------------------
+
+(sortedp (app l1 l2))
+
+  
+  attempt 2
+  
+  
+Re-written min-l
+min-l (l)
+  :ic (lorp l)/\(consp l)
+  :oc (rationalp (min-l l))
+  (cond
+    ((endp (rest l))                 (first l))
+    ((< (first l) (min-l (rest l)))  (first l))
+    (t                               (min-l (rest l))))
+
+I.S for min-l
+
+1. Trivial
+~((lorp l)/\(consp l)) => phi_app_sort
+C1. ~(lorp l)
+C2. ~(consp l)
+C3. (lorp l1)
+= {C1,C3}
+nil
+
+2. Base
+(lorp l)/\(consp l)/\(endp (rest l)) => phi_app_sort
+C1. (lorp l)
+C2. (consp l)
+C3. (endp (rest l1))
+(lorp l1) /\ (lorp l2) /\ (sortedp l1) /\ (sortedp l2) /\ (consp l1)
+  /\ (consp l2) /\ (< (first (rev l1)) (first l2)) => (sortedp (app l1 l2))
+        
 |#
 
 ;; GIVEN: No need to prove this.
