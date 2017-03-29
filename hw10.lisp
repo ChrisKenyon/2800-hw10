@@ -814,6 +814,7 @@ C14. (< (first (rev (rest l1))) (first l2)) {C1,C2,C3,L2,C11}
 C15. (sortedp (app (rest l1) l2)) {C12,C6,C13,C8,C9,C3,def.cons,C10,C14,MP}
 
 (sortedp (app l1 l2))
+= {C1,C6,def. app}
 (sortedp (cons (first l1) (app (rest l1) l2)))
 = {C2,C3,C9,C4,def. sortedp|((l (cons (first l1) (app (rest l1) l2)))), if ax, first-rest ax}
 (sortedp (app (rest l1) l2))
@@ -870,10 +871,31 @@ C3. (rationalp r)
 C4. (lorp l)
 C5. (in e (filter-less r l))
 C6. (< (first l) r)
+C7. (rationalp e)/\(rationalp r)/\(lorp (rest l))/\(in e (filter-less r (rest l))) => (< e r)
 -----------------
+C8. (lorp (rest l)) {C1,C4,first-rest ax}
+C9. (in e (app (list(first l))(filter-less r (rest l)))) {def. filter-less, assumption listed above, C5,C6}
+C10. (in e (filter-less r (rest l)))  {C9,def. in, first-rest ax}
+C11. (< e r) {C2,C3,C8,C10,C7,MP}
 (< e r)
+={C11}
+t
 
-#TODO im so fucking confused
+Case 3
+C1. (not (endp l))
+C2. (rationalp e)
+C3. (rationalp r)
+C4. (lorp l)
+C5. (in e (filter-less r l))
+C6. ~(< (first l) r)
+C7. (rationalp e)/\(rationalp r)/\(lorp (rest l))/\(in e (filter-less r (rest l))) => (< e r)
+-----------------
+C8. (lorp (rest l)) {C1,C4,first-rest ax}
+C9. (in e (filter-less r (rest l))) {def. filter-less,C1,C6}
+C10. (< e r)
+(< e r)
+= {C10}
+t
 
 |#
 
