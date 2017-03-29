@@ -879,11 +879,9 @@ Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-g
 Case 1: Trivial, will not prove
 
 Case 2: IC /\ (endp l)
-
 C1. (lorp l)
 C2. (endp l)
 ------------
-
 (sortedp (qsort l))
 = {def qsort, C2}
 (sortedp l)
@@ -892,7 +890,6 @@ t
 QED
 
 Case 3: IC /\ (not (endp l)) /\ (endp (rest l))
-
 C1. (lorp l)
 C2. (not (endp l))
 C3. (endp (rest l))
@@ -904,7 +901,20 @@ C3. (endp (rest l))
 t
 QED
 
+Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l))))
+C1. (lorp l)
+C2. (not (endp l))
+C3. (not (endp (rest l)))
+C4. (lorp (filter-less (first l) (rest l))) => (sortedp (qsort (filter-less (first l) (rest l))))
+#TODO write this
 
+
+Case 5: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-gte (first l) (rest l))))
+C1. (lorp l)
+C2. (not (endp l))
+C3. (not (endp (rest l)))
+C4. (lorp (filter-gte (first l) (rest l))) => (sortedp (qsort (filter-gte (first l) (rest l))))
+#TODO write this
 
 |#
 
