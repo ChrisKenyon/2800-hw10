@@ -1049,21 +1049,20 @@ a list is empty or not.
 ;; where the pivot element is the first element in the list?
 ; LOL one where the list is already sorted I see what you did there
 
-(defconst *slow-list* (ssort (gen-lor* 16000)))
+(defconst *slow-list* (ssort (gen-lor* 8000))) ;16K blew out my memory, see @414 on Piazza
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (ssort *slow-list*)))
    (acl2::value-triple nil))
 ;; How long does this take?
-; 12.16 seconds realtime, 12.16 seconds runtime
+; 3.03 seconds realtime, 3.03 seconds runtime
 
 (acl2::er-progn
    (acl2::time$ (acl2::value-triple (qsort *slow-list*)))
    (acl2::value-triple nil))#|ACL2s-ToDo-Line|#
 
 ;; How long does this take?
-; This caused ACL2s to hang for about 10 minutes before giving 'ACL2 died unexpectedly'
-; so I would say > 10 minutes. (I did reboot the session and try again)
+; 12.36 seconds realtime, 12.23 seconds runtime
 
 #|
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
