@@ -1,3 +1,61 @@
+; **************** BEGIN INITIALIZATION FOR ACL2s B MODE ****************** ;
+; (Nothing to see here!  Your actual file is after this initialization code);
+
+#|
+Pete Manolios
+Fri Jan 27 09:39:00 EST 2012
+----------------------------
+
+Made changes for spring 2012.
+
+
+Pete Manolios
+Thu Jan 27 18:53:33 EST 2011
+----------------------------
+
+The Beginner level is the next level after Bare Bones level.
+
+|#
+
+; Put CCG book first in order, since it seems this results in faster loading of this mode.
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading the CCG book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "ccg/ccg" :uncertified-okp nil :dir :acl2s-modes :ttags ((:ccg)) :load-compiled-file nil);v4.0 change
+
+;Common base theory for all modes.
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s base theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "base-theory" :dir :acl2s-modes)
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s customizations book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "custom" :dir :acl2s-modes :uncertified-okp nil :ttags :all)
+
+;Settings common to all ACL2s modes
+(acl2s-common-settings)
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading trace-star and evalable-ld-printing books.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "trace-star" :uncertified-okp nil :dir :acl2s-modes :ttags ((:acl2s-interaction)) :load-compiled-file nil)
+(include-book "hacking/evalable-ld-printing" :uncertified-okp nil :dir :system :ttags ((:evalable-ld-printing)) :load-compiled-file nil)
+
+;theory for beginner mode
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem loading ACL2s beginner theory book.~%Please choose \"Recertify ACL2s system books\" under the ACL2s menu and retry after successful recertification.") (value :invisible))
+(include-book "beginner-theory" :dir :acl2s-modes :ttags :all)
+
+
+#+acl2s-startup (er-progn (assign fmt-error-msg "Problem setting up ACL2s Beginner mode.") (value :invisible))
+;Settings specific to ACL2s Beginner mode.
+(acl2s-beginner-settings)
+
+; why why why why 
+(acl2::xdoc acl2s::defunc) ; almost 3 seconds
+
+(cw "~@0Beginner mode loaded.~%~@1"
+    #+acl2s-startup "${NoMoReSnIp}$~%" #-acl2s-startup ""
+    #+acl2s-startup "${SnIpMeHeRe}$~%" #-acl2s-startup "")
+
+
+(acl2::in-package "ACL2S B")
+
+; ***************** END INITIALIZATION FOR ACL2s B MODE ******************* ;
+;$ACL2s-SMode$;Beginner
 #|
 
 CS 2800 Homework 10 - Spring 2017
@@ -702,7 +760,8 @@ t
 |#
 
 (defthm L1 (implies (and (lorp l)(not (endp l)))
-                    (equal (second (cons a l))(first l))))
+                    (equal (second (cons a l))(first l))))#|ACL2s-ToDo-Line|#
+
 #|
 Lemma 1 proof
 C1. (lorp l)
@@ -761,21 +820,6 @@ C4. (lorp (rest l)) {C1,C2,C3}
 ={PL}
 t
 
-(defunc rev (a) 
-  :input-contract (listp a) 
-  :output-contract (listp (rev a))
-  (if (endp a)
-      nil
-    (app (rev (rest a)) (list (first a)))))
-    
-(defunc app (a b) 
-  :input-contract (and (listp a) (listp b))
-  :output-contract (listp (app a b))
-  (if (endp a)
-      b
-    (cons (first a) (app (rest a) b))))   
-    
-    
 4. Recursive
 (lorp l1)/\~(endp l1)/\~(endp (rest l1))/\(<= (first l1)(second l1))/\phi_app_sort|((l1 (rest l1))) => phi_app_sort
 
@@ -822,13 +866,6 @@ QED
 You may assume that if (in e (filter-less r l)) is true and e = (first l)
 then you MUST take the (cons (first l)(filter-less r (rest l))) branch
 of filter-less.
-
-(defunc filter-less (r l)
-  :input-contract (and (rationalp r) (lorp l))
-  :output-contract (lorp (filter-less r l))
-  (cond ((endp l) nil)
-        ((< (first l) r) (app (list (first l)) (filter-less r (rest l))))
-        (t (filter-less r (rest l)))))
 
 I.S. for filter-less
 Case 1: (endp l)
@@ -941,11 +978,43 @@ C3. (endp (rest l))
 t
 QED
 
+
+#TODO remove this
+(defunc filter-less (r l)
+  :input-contract (and (rationalp r) (lorp l))
+  :output-contract (lorp (filter-less r l))
+  (cond ((endp l) nil)
+        ((< (first l) r) (app (list (first l)) (filter-less r (rest l))))
+        (t (filter-less r (rest l)))))
+Re-written sortedp
+(defunc sortedp (l)
+  :input-contract (lorp l)
+  :output-contract (booleanp (sortedp l))
+  (cond ((endp l) t)
+        ((endp (rest l)) t)
+        ((<= (first l) (second l)) (sortedp (rest l)))))       
+(defunc qsort (l)
+  :input-contract (lorp l)
+  :output-contract (lorp (qsort l))
+  (if (or (endp l)(endp (rest l)))
+    l
+    (app (qsort (filter-less (first l)(rest l)))
+         (cons (first l)(qsort (filter-gte (first l)(rest l)))))))
+        
 Case 4: IC /\ (not (endp l)) /\ (not (endp (rest l))) /\ phi_qsort|((l (filter-less (first l) (rest l))))
 C1. (lorp l)
 C2. (not (endp l))
 C3. (not (endp (rest l)))
 C4. (lorp (filter-less (first l) (rest l))) => (sortedp (qsort (filter-less (first l) (rest l))))
+---------------
+C5. (lorp (filter-less (first l) (rest l))) {filter-less o.c.}
+C6. (sortedp (qsort (filter-less (first l) (rest l))))
+(sortedp (qsort l))
+= {C1,C2,C3,def.qsort}
+(sortedp (app (qsort (filter-less (first l)(rest l)))
+              (cons (first l)(qsort (filter-gte (first l)(rest l))))))
+
+
 #TODO write this
 
 
